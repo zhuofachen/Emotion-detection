@@ -1,6 +1,5 @@
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 
 
 class VggFeatures(nn.Module):
@@ -54,7 +53,6 @@ class VggFeatures(nn.Module):
         x = F.relu(self.bn4a(self.conv4a(x)))
         x = F.relu(self.bn4b(self.conv4b(x)))
         x = self.pool(x)
-        # print(x.shape)
 
         x = x.view(-1, 512 * 3 * 3)
         x = F.relu(self.drop(self.lin1(x)))

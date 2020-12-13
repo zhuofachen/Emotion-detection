@@ -20,7 +20,7 @@ class CustomDataset(Dataset):
         img = Image.fromarray(np.array(self.images[idx]))
 
         if self.transform:
-            img = self.transform(img)
+            img = self.transform(img).half()
 
         label = torch.tensor(self.labels[idx]).type(torch.long)
         sample = (img, label)

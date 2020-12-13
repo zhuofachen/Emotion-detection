@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
@@ -8,6 +9,7 @@ from data.dataset import CustomDataset
 
 def load_data(path='../datasets/fer2013/fer2013.csv'):
     fer2013 = pd.read_csv(path)
+    # print(fer2013.head(10))
     emotion_mapping = {0: 'Angry', 1: 'Disgust', 2: 'Fear', 3: 'Happy', 4: 'Sad', 5: 'Surprise', 6: 'Neutral'}
 
     return fer2013, emotion_mapping
@@ -48,7 +50,9 @@ def get_dataloaders(path='../datasets/fer2013/fer2013.csv', augment=True):
 
     mu, st = 0, 255
     test_transform = transforms.Compose([
-        transforms.ToTensor(),
+        transforms.Pad(2),
+        transforms.TenCrop(48),
+        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
         transforms.Normalize(mean=(mu,), std=(st,))
     ])
 
@@ -56,9 +60,10 @@ def get_dataloaders(path='../datasets/fer2013/fer2013.csv', augment=True):
         train_transform = transforms.Compose([
             transforms.RandomResizedCrop(48, scale=(0.8, 1.2)),
             transforms.RandomApply([transforms.RandomAffine(0, translate=(0.2, 0.2))], p=0.5),
-            transforms.RandomHorizontalFlip(),
             transforms.RandomApply([transforms.RandomRotation(10)], p=0.5),
-            transforms.ToTensor(),
+            transforms.Pad(2),
+            transforms.TenCrop(48),
+            transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
             transforms.Normalize(mean=(mu,), std=(st,))
         ])
     else:
@@ -68,8 +73,8 @@ def get_dataloaders(path='../datasets/fer2013/fer2013.csv', augment=True):
     val = CustomDataset(xval, yval, test_transform)
     test = CustomDataset(xtest, ytest, test_transform)
 
-    trainloader = DataLoader(train, batch_size=128, shuffle=True, num_workers=2)
-    valloader = DataLoader(val, batch_size=128, shuffle=True, num_workers=2)
-    testloader = DataLoader(test, batch_size=128, shuffle=True, num_workers=2)
+    trainloader = DataLoader(train, batch_size=10, shuffle=True)#, num_workers=2)
+    valloader = DataLoader(val, batch_size=10, shuffle=True)#, num_workers=2)
+    testloader = DataLoader(test, batch_size=10, shuffle=True)#, num_workers=2)
 
     return trainloader, valloader, testloader
